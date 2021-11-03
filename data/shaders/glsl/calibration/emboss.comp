@@ -20,7 +20,9 @@ struct ImageData
 } imageData;	
 
 void main()
-{	
+{	if (gl_GlobalInvocationID.x < 640) {
+		return;
+	}
 	// Fetch neighbouring texels
 	int n = -1;
 	for (int i=-1; i<2; ++i) 
