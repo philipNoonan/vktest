@@ -236,5 +236,5 @@ data/font*.*
 data/roboto*.*
 
 # submodules
-external/glm
-external/imgui
+external/glm/*
+external/imgui/*

@@ -410,134 +410,134 @@ public:
 // OS specific macros for the example main entry points
 #if defined(_WIN32)
 // Windows entry point
-#define VULKAN_EXAMPLE_MAIN()																		\
-VulkanExample *vulkanExample;																		\
+#define VULKAN_PLUGIN_MAIN()																		\
+HvsPlugin *hvsPlugin;																		\
 LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)						\
 {																									\
-	if (vulkanExample != NULL)																		\
+	if (hvsPlugin != NULL)																		\
 	{																								\
-		vulkanExample->handleMessages(hWnd, uMsg, wParam, lParam);									\
+		hvsPlugin->handleMessages(hWnd, uMsg, wParam, lParam);									\
 	}																								\
 	return (DefWindowProc(hWnd, uMsg, wParam, lParam));												\
 }																									\
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)									\
 {																									\
-	for (int32_t i = 0; i < __argc; i++) { VulkanExample::args.push_back(__argv[i]); };  			\
-	vulkanExample = new VulkanExample();															\
-	vulkanExample->initVulkan();																	\
-	vulkanExample->setupWindow(hInstance, WndProc);													\
-	vulkanExample->prepare();																		\
-	vulkanExample->renderLoop();																	\
-	delete(vulkanExample);																			\
+	for (int32_t i = 0; i < __argc; i++) { HvsPlugin::args.push_back(__argv[i]); };  			\
+	hvsPlugin = new HvsPlugin();															\
+	hvsPlugin->initVulkan();																	\
+	hvsPlugin->setupWindow(hInstance, WndProc);													\
+	hvsPlugin->prepare();																		\
+	hvsPlugin->renderLoop();																	\
+	delete(hvsPlugin);																			\
 	return 0;																						\
 }
 #elif defined(VK_USE_PLATFORM_ANDROID_KHR)
 // Android entry point
-#define VULKAN_EXAMPLE_MAIN()																		\
-VulkanExample *vulkanExample;																		\
+#define VULKAN_PLUGIN_MAIN()																		\
+HvsPlugin *hvsPlugin;																		\
 void android_main(android_app* state)																\
 {																									\
-	vulkanExample = new VulkanExample();															\
-	state->userData = vulkanExample;																\
-	state->onAppCmd = VulkanExample::handleAppCommand;												\
-	state->onInputEvent = VulkanExample::handleAppInput;											\
+	hvsPlugin = new HvsPlugin();															\
+	state->userData = hvsPlugin;																\
+	state->onAppCmd = hvsPlugin::handleAppCommand;												\
+	state->onInputEvent = HvsPlugin::handleAppInput;											\
 	androidApp = state;																				\
 	vks::android::getDeviceConfig();																\
-	vulkanExample->renderLoop();																	\
-	delete(vulkanExample);																			\
+	hvsPlugin->renderLoop();																	\
+	delete(hvsPlugin);																			\
 }
 #elif defined(_DIRECT2DISPLAY)
 // Linux entry point with direct to display wsi
-#define VULKAN_EXAMPLE_MAIN()																		\
-VulkanExample *vulkanExample;																		\
+#define VULKAN_PLUGIN_MAIN()																		\
+HvsPlugin *hvsPlugin;																		\
 static void handleEvent()                                											\
 {																									\
 }																									\
 int main(const int argc, const char *argv[])													    \
 {																									\
-	for (size_t i = 0; i < argc; i++) { VulkanExample::args.push_back(argv[i]); };  				\
-	vulkanExample = new VulkanExample();															\
-	vulkanExample->initVulkan();																	\
-	vulkanExample->prepare();																		\
-	vulkanExample->renderLoop();																	\
-	delete(vulkanExample);																			\
+	for (size_t i = 0; i < argc; i++) { HvsPlugin::args.push_back(argv[i]); };  				\
+	hvsPlugin = new HvsPlugin();															\
+	hvsPlugin->initVulkan();																	\
+	hvsPlugin->prepare();																		\
+	hvsPlugin->renderLoop();																	\
+	delete(hvsPlugin);																			\
 	return 0;																						\
 }
 #elif defined(VK_USE_PLATFORM_DIRECTFB_EXT)
-#define VULKAN_EXAMPLE_MAIN()																		\
-VulkanExample *vulkanExample;																		\
+#define VULKAN_PLUGIN_MAIN()																		\
+HvsPlugin *hvsPlugin;																		\
 static void handleEvent(const DFBWindowEvent *event)												\
 {																									\
-	if (vulkanExample != NULL)																		\
+	if (hvsPlugin != NULL)																		\
 	{																								\
-		vulkanExample->handleEvent(event);															\
+		hvsPlugin->handleEvent(event);															\
 	}																								\
 }																									\
 int main(const int argc, const char *argv[])													    \
 {																									\
-	for (size_t i = 0; i < argc; i++) { VulkanExample::args.push_back(argv[i]); };  				\
-	vulkanExample = new VulkanExample();															\
-	vulkanExample->initVulkan();																	\
-	vulkanExample->setupWindow();					 												\
-	vulkanExample->prepare();																		\
-	vulkanExample->renderLoop();																	\
-	delete(vulkanExample);																			\
+	for (size_t i = 0; i < argc; i++) { HvsPlugin::args.push_back(argv[i]); };  				\
+	hvsPlugin = new HvsPlugin();															\
+	hvsPlugin->initVulkan();																	\
+	hvsPlugin->setupWindow();					 												\
+	hvsPlugin->prepare();																		\
+	hvsPlugin->renderLoop();																	\
+	delete(hvsPlugin);																			\
 	return 0;																						\
 }
 #elif (defined(VK_USE_PLATFORM_WAYLAND_KHR) || defined(VK_USE_PLATFORM_HEADLESS_EXT))
-#define VULKAN_EXAMPLE_MAIN()																		\
-VulkanExample *vulkanExample;																		\
+#define VULKAN_PLUGIN_MAIN()																		\
+HvsPlugin *hvsPlugin;																		\
 int main(const int argc, const char *argv[])													    \
 {																									\
-	for (size_t i = 0; i < argc; i++) { VulkanExample::args.push_back(argv[i]); };  				\
-	vulkanExample = new VulkanExample();															\
-	vulkanExample->initVulkan();																	\
-	vulkanExample->setupWindow();					 												\
-	vulkanExample->prepare();																		\
-	vulkanExample->renderLoop();																	\
-	delete(vulkanExample);																			\
+	for (size_t i = 0; i < argc; i++) { HvsPlugin::args.push_back(argv[i]); };  				\
+	hvsPlugin = new HvsPlugin();															\
+	hvsPlugin->initVulkan();																	\
+	hvsPlugin->setupWindow();					 												\
+	hvsPlugin->prepare();																		\
+	hvsPlugin->renderLoop();																	\
+	delete(hvsPlugin);																			\
 	return 0;																						\
 }
 #elif defined(VK_USE_PLATFORM_XCB_KHR)
-#define VULKAN_EXAMPLE_MAIN()																		\
-VulkanExample *vulkanExample;																		\
+#define VULKAN_PLUGIN_MAIN()																		\
+HvsPlugin *hvsPlugin;																		\
 static void handleEvent(const xcb_generic_event_t *event)											\
 {																									\
-	if (vulkanExample != NULL)																		\
+	if (hvsPlugin != NULL)																		\
 	{																								\
-		vulkanExample->handleEvent(event);															\
+		hvsPlugin->handleEvent(event);															\
 	}																								\
 }																									\
 int main(const int argc, const char *argv[])													    \
 {																									\
-	for (size_t i = 0; i < argc; i++) { VulkanExample::args.push_back(argv[i]); };  				\
-	vulkanExample = new VulkanExample();															\
-	vulkanExample->initVulkan();																	\
-	vulkanExample->setupWindow();					 												\
-	vulkanExample->prepare();																		\
-	vulkanExample->renderLoop();																	\
-	delete(vulkanExample);																			\
+	for (size_t i = 0; i < argc; i++) { HvsPlugin::args.push_back(argv[i]); };  				\
+	hvsPlugin = new HvsPlugin();															\
+	hvsPlugin->initVulkan();																	\
+	hvsPlugin->setupWindow();					 												\
+	hvsPlugin->prepare();																		\
+	hvsPlugin->renderLoop();																	\
+	delete(hvsPlugin);																			\
 	return 0;																						\
 }
 #elif (defined(VK_USE_PLATFORM_IOS_MVK) || defined(VK_USE_PLATFORM_MACOS_MVK))
 #if defined(VK_EXAMPLE_XCODE_GENERATED)
-#define VULKAN_EXAMPLE_MAIN()																		\
-VulkanExample *vulkanExample;																		\
+#define VULKAN_PLUGIN_MAIN()																		\
+HvsPlugin *hvsPlugin;																		\
 int main(const int argc, const char *argv[])														\
 {																									\
 	@autoreleasepool																				\
 	{																								\
-		for (size_t i = 0; i < argc; i++) { VulkanExample::args.push_back(argv[i]); };				\
-		vulkanExample = new VulkanExample();														\
-		vulkanExample->initVulkan();																\
-		vulkanExample->setupWindow(nullptr);														\
-		vulkanExample->prepare();																	\
-		vulkanExample->renderLoop();																\
-		delete(vulkanExample);																		\
+		for (size_t i = 0; i < argc; i++) { HvsPlugin::args.push_back(argv[i]); };				\
+		hvsPlugin = new HvsPlugin();														\
+		hvsPlugin->initVulkan();																\
+		hvsPlugin->setupWindow(nullptr);														\
+		hvsPlugin->prepare();																	\
+		hvsPlugin->renderLoop();																\
+		delete(hvsPlugin);																		\
 	}																								\
 	return 0;																						\
 }
 #else
-#define VULKAN_EXAMPLE_MAIN()
+#define VULKAN_PLUGIN_MAIN()
 #endif
 #endif

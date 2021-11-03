@@ -45,6 +45,8 @@ class Texture
 	void      updateDescriptor();
 	void      destroy();
 	ktxResult loadKTXFile(std::string filename, ktxTexture **target);
+
+
 };
 
 class Texture2D : public Texture
@@ -69,6 +71,22 @@ class Texture2D : public Texture
 	    VkFilter           filter          = VK_FILTER_LINEAR,
 	    VkImageUsageFlags  imageUsageFlags = VK_IMAGE_USAGE_SAMPLED_BIT,
 	    VkImageLayout      imageLayout     = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+	void update(
+		void*				buffer,
+		VkDeviceSize		bufferSize,
+		VkFormat			format,
+		vks::VulkanDevice*	device,
+		VkQueue				copyQueue);
+
+  private:
+	  VkBuffer stagingBuffer;
+	  VkDeviceMemory stagingMemory;
+	  VkMemoryRequirements memReqs;
+	  VkCommandBuffer copyCmd;
+	  VkImageSubresourceRange subresourceRange;
+	  VkBufferImageCopy bufferCopyRegion;
+
+
 };
 
 class Texture2DArray : public Texture

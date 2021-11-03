@@ -2,18 +2,30 @@ cmake_minimum_required(VERSION 3.18)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
+# Toolchain file needs to be set before project() 
+### FIND VCPKG
+if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+  set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+      CACHE STRING "")
+else()
+	message(STATUS "VCPKG_ROOT not set in environment variables")	  
+endif()
 
 project(vk_HSI LANGUAGES C CXX)
 
 include_directories(external)
 include_directories(external/glm)
 include_directories(external/imgui)
+include_directories(external/tinygltf)
 include_directories(external/ktx/include)
 include_directories(external/ktx/other_include)
 include_directories(base)
 
 # FindVulkan added in CMAKE 3.7
 find_package(Vulkan)
+
+# use vcpkg for now, but change this later!
+find_package(OpenCV REQUIRED)
 
 IF(UNIX AND NOT APPLE)
 	set(LINUX TRUE)
@@ -116,7 +128,7 @@ function(buildPlugins)
 	endforeach(PLUGIN)
 endfunction(buildPlugins)
 
-
+add_definitions(-DVK_EXAMPLE_DATA_DIR=\"${CMAKE_SOURCE_DIR}/data/\")
 
 
 

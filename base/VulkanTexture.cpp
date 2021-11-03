@@ -355,14 +355,14 @@ namespace vks
 		mipLevels = 1;
 
 		VkMemoryAllocateInfo memAllocInfo = vks::initializers::memoryAllocateInfo();
-		VkMemoryRequirements memReqs;
+		//VkMemoryRequirements memReqs;
 
 		// Use a separate command buffer for texture loading
-		VkCommandBuffer copyCmd = device->createCommandBuffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY, true);
+		copyCmd = device->createCommandBuffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY, true);
 
 		// Create a host-visible staging buffer that contains the raw image data
-		VkBuffer stagingBuffer;
-		VkDeviceMemory stagingMemory;
+		//VkBuffer stagingBuffer;
+		//VkDeviceMemory stagingMemory;
 
 		VkBufferCreateInfo bufferCreateInfo = vks::initializers::bufferCreateInfo();
 		bufferCreateInfo.size = bufferSize;
@@ -388,7 +388,7 @@ namespace vks
 		memcpy(data, buffer, bufferSize);
 		vkUnmapMemory(device->logicalDevice, stagingMemory);
 
-		VkBufferImageCopy bufferCopyRegion = {};
+		bufferCopyRegion = {};
 		bufferCopyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		bufferCopyRegion.imageSubresource.mipLevel = 0;
 		bufferCopyRegion.imageSubresource.baseArrayLayer = 0;
@@ -425,7 +425,7 @@ namespace vks
 		VK_CHECK_RESULT(vkAllocateMemory(device->logicalDevice, &memAllocInfo, nullptr, &deviceMemory));
 		VK_CHECK_RESULT(vkBindImageMemory(device->logicalDevice, image, deviceMemory, 0));
 
-		VkImageSubresourceRange subresourceRange = {};
+		subresourceRange = {};
 		subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		subresourceRange.baseMipLevel = 0;
 		subresourceRange.levelCount = mipLevels;
@@ -462,8 +462,8 @@ namespace vks
 		device->flushCommandBuffer(copyCmd, copyQueue);
 
 		// Clean up staging resources
-		vkFreeMemory(device->logicalDevice, stagingMemory, nullptr);
-		vkDestroyBuffer(device->logicalDevice, stagingBuffer, nullptr);
+		//vkFreeMemory(device->logicalDevice, stagingMemory, nullptr);
+		//vkDestroyBuffer(device->logicalDevice, stagingBuffer, nullptr);
 
 		// Create sampler
 		VkSamplerCreateInfo samplerCreateInfo = {};
@@ -497,6 +497,55 @@ namespace vks
 		updateDescriptor();
 	}
 
+	void Texture2D::update(void* buffer, VkDeviceSize bufferSize, VkFormat format, vks::VulkanDevice* device, VkQueue copyQueue)
+	{
+
+		copyCmd = device->createCommandBuffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY, true);
+
+
+		VK_CHECK_RESULT(vkBindBufferMemory(device->logicalDevice, stagingBuffer, stagingMemory, 0));
+
+		// Copy texture data into staging buffer
+		uint8_t* data;
+		VK_CHECK_RESULT(vkMapMemory(device->logicalDevice, stagingMemory, 0, memReqs.size, 0, (void**)&data));
+		memcpy(data, buffer, bufferSize);
+		vkUnmapMemory(device->logicalDevice, stagingMemory);
+
+		VK_CHECK_RESULT(vkBindImageMemory(device->logicalDevice, image, deviceMemory, 0));
+
+
+		// Image barrier for optimal image (target)
+        // Optimal image will be used as destination for the copy
+		vks::tools::setImageLayout(
+			copyCmd,
+			image,
+			imageLayout,
+			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+			subresourceRange);
+
+		// Copy mip levels from staging buffer
+		vkCmdCopyBufferToImage(
+			copyCmd,
+			stagingBuffer,
+			image,
+			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+			1,
+			&bufferCopyRegion
+		);
+
+		// Change texture image layout to shader read after all mip levels have been copied
+		vks::tools::setImageLayout(
+			copyCmd,
+			image,
+			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+			imageLayout,
+			subresourceRange);
+
+		device->flushCommandBuffer(copyCmd, copyQueue);
+
+		
+
+	}
 	/**
 	* Load a 2D texture array including all mip levels
 	*

@@ -13,6 +13,8 @@ set(KTX_SOURCES
 add_library(base STATIC ${BASE_SRC} ${KTX_SOURCES})
 if(WIN32)
     target_link_libraries(base ${Vulkan_LIBRARY} ${WINLIBS})
+    target_include_directories(base PUBLIC ${Vulkan_INCLUDE_DIR})
  else(WIN32)
     target_link_libraries(base ${Vulkan_LIBRARY} ${XCB_LIBRARIES} ${WAYLAND_CLIENT_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+    target_include_directories(base PUBLIC ${Vulkan_INCLUDE_DIR})
 endif(WIN32)

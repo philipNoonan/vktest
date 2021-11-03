@@ -24,10 +24,10 @@ function(buildPlugin PLUGIN_NAME)
 		SET(SOURCE ${SOURCE} ${CMAKE_BINARY_DIR}/xdg-shell-client-protocol.h ${CMAKE_BINARY_DIR}/xdg-shell-protocol.c)
 	ENDIF()
 	# Add shaders
-	set(SHADER_DIR_GLSL "../data/shaders/${PLUGIN_NAME}")
+	set(SHADER_DIR_GLSL "../data/shaders/glsl/${PLUGIN_NAME}")
 	file(GLOB SHADERS_GLSL "${SHADER_DIR_GLSL}/*.vert" "${SHADER_DIR_GLSL}/*.frag" "${SHADER_DIR_GLSL}/*.comp" "${SHADER_DIR_GLSL}/*.geom" "${SHADER_DIR_GLSL}/*.tesc" "${SHADER_DIR_GLSL}/*.tese" "${SHADER_DIR_GLSL}/*.mesh" "${SHADER_DIR_GLSL}/*.task" "${SHADER_DIR_GLSL}/*.rgen" "${SHADER_DIR_GLSL}/*.rchit" "${SHADER_DIR_GLSL}/*.rmiss" "${SHADER_DIR_GLSL}/*.rcall")
 
-    source_group("Shaders\\" FILES ${SHADERS_GLSL})
+    source_group("Shaders\\glsl" FILES ${SHADERS_GLSL})
 
     # Add optional readme / tutorial
 	file(GLOB README_FILES "${PLUGIN_FOLDER}/*.md")
@@ -53,6 +53,12 @@ function(buildPlugin PLUGIN_NAME)
 	# 		endif()	
 	# 	endif()
 	# endif()
+
+	IF(${PLUGIN_NAME} STREQUAL "calibration")
+	    target_link_libraries(${PLUGIN_NAME} ${OpenCV_LIBS} )	
+		target_include_directories(${PLUGIN_NAME} PUBLIC ${OpenCV_INCLUDE_DIRS})
+	endif()
+
 
 	if(RESOURCE_INSTALL_DIR)
 		install(TARGETS ${PLUGIN_NAME} DESTINATION ${CMAKE_INSTALL_BINDIR})
