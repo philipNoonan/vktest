@@ -131,7 +131,13 @@ endfunction(buildPlugins)
 add_definitions(-DVK_EXAMPLE_DATA_DIR=\"${CMAKE_SOURCE_DIR}/data/\")
 
 
-
+IF(WIN32)
+	# Nothing here (yet)
+ELSEIF(APPLE)
+	link_libraries(${Vulkan_LIBRARY} "-framework AppKit" "-framework QuartzCore")
+ELSE(WIN32)
+	link_libraries(${XCB_LIBRARIES} ${Vulkan_LIBRARY} ${Vulkan_LIBRARY} ${DIRECTFB_LIBRARIES} ${WAYLAND_CLIENT_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+ENDIF(WIN32)
 
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/")
