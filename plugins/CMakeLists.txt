@@ -75,10 +75,10 @@ endfunction(buildPlugins)
 
 set(PLUGINS
     calibration
-    demosaic
-    color_correction
-    super_resolution
-    srgb_reconstruction	
+    #demosaic
+    #color_correction
+    #super_resolution
+    #srgb_reconstruction	
 )
 
 buildPlugins()
