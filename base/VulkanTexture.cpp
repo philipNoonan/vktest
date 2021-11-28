@@ -503,7 +503,8 @@ namespace vks
 		copyCmd = device->createCommandBuffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY, true);
 
 
-		VK_CHECK_RESULT(vkBindBufferMemory(device->logicalDevice, stagingBuffer, stagingMemory, 0));
+		//VK_CHECK_RESULT(vkBindBufferMemory(device->logicalDevice, stagingBuffer, stagingMemory, 0));
+		vkGetBufferMemoryRequirements(device->logicalDevice, stagingBuffer, &memReqs);
 
 		// Copy texture data into staging buffer
 		uint8_t* data;
@@ -511,7 +512,7 @@ namespace vks
 		memcpy(data, buffer, bufferSize);
 		vkUnmapMemory(device->logicalDevice, stagingMemory);
 
-		VK_CHECK_RESULT(vkBindImageMemory(device->logicalDevice, image, deviceMemory, 0));
+		//VK_CHECK_RESULT(vkBindImageMemory(device->logicalDevice, image, deviceMemory, 0));
 
 
 		// Image barrier for optimal image (target)

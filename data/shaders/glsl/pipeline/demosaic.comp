@@ -1,0 +1,57 @@
+/*
+Compute Shader to demosaic hyperspectral 4x4 images
+
+Inspired from Morgan McGuire's https://casual-effects.com/research/McGuire2009Bayer/index.html
+
+MM's original vert/frag shaders were Malvar-He-Cutler optimized for the general RGGB bayer filter, so we have adapted this for HSI.
+
+We have two modes: nearest neighbour <- currently only implemented, and MHC inspired 
+
+Author: Philip Noonan (philip.noonan@kcl.ac.uk)
+Date Created: 10 Jun 2021
+*/
+#version 430
+
+layout (local_size_x = 32, local_size_y = 32) in;
+
+layout (binding = 0, r32f) readonly uniform image2D calibrated_image;
+layout (binding = 1, r32f) writeonly uniform image2DArray hypercube;
+//layout (binding = 2, r8ui) writeonly uniform uimage2D tiledOutput; // output for websocket streaming
+//layout (binding = 3, r16ui) readonly uniform uimage2D raw_image;
+
+int mosaicSize = 4;
+
+void main(void) {
+    // CHECK IF OUT OF BOUNDS - PO2 should prevent that but need to check it!
+    // each thread reads in one pixel from the large and writes to a separate layer in the hypercube
+
+    ivec2 pix = ivec2(gl_GlobalInvocationID.xy); // coord of each pix in large
+    ivec2 outputPix = ivec2(gl_GlobalInvocationID.xy) / mosaicSize; // coord of the output small image
+
+    ivec2 localPix = ivec2(gl_LocalInvocationID.xy); // local coord of each 4x4 grid
+    ivec2 imSize = ivec2(imageSize(calibrated_image).xy);
+
+
+    float data = imageLoad(calibrated_image, ivec2(pix)).x;
+
+
+
+    int i = (pix.x % mosaicSize);
+    int j = (pix.y % mosaicSize); // bug? should this be divided by?
+
+            imageStore(hypercube, ivec3(outputPix.xy, (j * mosaicSize) + i), vec4(data, 0, 0, 0));
+            // JUST TESTING SHUFT STACKING //imageStore(hypercubeTRT, ivec3((j * mosaicSize) + i, outputPix.x, outputPix.y), vec4(data, 0, 0, 0));
+            //imageStore(hypercubeTRT, ivec3(outputPix.xy, (j * mosaicSize) + i), vec4(data, 0, 0, 0));
+
+            //imageStore(tiledOutput, ivec2(outputPix.x + (i * imSize.x / mosaicSize), outputPix.y + (j * imSize.y / mosaicSize)), uvec4(data * 255.0f, 0, 0, 0));
+
+            //uint rawData = imageLoad(raw_image, ivec2(pix)).x;
+            //uint shiftedBits = rawData << 6; // ? <<  2 here?
+
+            //write this first, then overwrite with timing bits
+            //imageStore(testOutput, ivec2(outputPix.x + (i * imSize.x / mosaicSize), outputPix.y + (j * imSize.y / mosaicSize)), uvec4(shiftedBits, 0, 0, 0));
+            //if (pix.y == 0 && pix.x < 8) { // dont reorder time stamps
+            //    imageStore(testOutput, pix, uvec4(shiftedBits, 0, 0, 0));
+            //}
+           
+}

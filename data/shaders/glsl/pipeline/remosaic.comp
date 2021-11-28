@@ -1,0 +1,41 @@
+/*
+Compute Shader to remosaic hyperspectral 4x4 images from loaded h265 tiled sources
+
+
+Author: Philip Noonan (philip.noonan@kcl.ac.uk)
+Date Created: 19 Oct 2021
+*/
+#version 430
+
+layout (local_size_x = 32, local_size_y = 32) in;
+
+
+
+layout (binding = 0, r16ui) readonly uniform uimage2D tiled_image;
+layout (binding = 1, r16ui) writeonly uniform uimage2D mosaic_image;
+
+int mosaicSize = 4;
+
+
+
+void main(void) {
+    // CHECK IF OUT OF BOUNDS - PO2 should prevent that but need to check it!
+    // each thread reads in one pixel from the large and writes to a separate layer in the hypercube
+
+    ivec2 pix = ivec2(gl_GlobalInvocationID.xy); // coord of each pix in large
+    ivec2 outputPix = ivec2(gl_GlobalInvocationID.xy) / mosaicSize; // coord of the output small image
+
+    ivec2 imSize = ivec2(imageSize(tiled_image).xy);
+
+
+
+
+    int i = (pix.x % mosaicSize);
+    int j = (pix.y % mosaicSize); // bug? should this be divided by?
+
+
+    uint tiledData = uint(imageLoad(tiled_image, ivec2(outputPix.x + (i * imSize.x / mosaicSize), outputPix.y + (j * imSize.y / mosaicSize))  ).x);
+    uint shortData = tiledData >> 6;
+    imageStore(mosaic_image, pix, uvec4(shortData, 0, 0, 0));
+
+}

@@ -1,0 +1,12 @@
+Tests to make:
+
+1. Does mainloop run 
+2. Does each compute shader return expected values from default, and from test images
+3. Does exporting single frame work
+4. Does exporting hevc video work from default, and from test images
+5. Does importing hevc video work
+
+
+
+
+

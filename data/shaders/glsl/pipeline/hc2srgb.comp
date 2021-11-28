@@ -1,0 +1,154 @@
+/*
+Compute Shader to convert color corrected hyperspectral images to sRGB space via XYZ conversion
+
+Author: Philip Noonan (philip.noonan@kcl.ac.uk)
+Date Created: 10 Jun 2021
+*/
+
+#version 430
+layout (local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
+
+
+layout (binding = 0, r32f) readonly uniform image2DArray corrected_cube;
+layout (binding = 1, rgba8ui) writeonly uniform uimage2D color_image;
+
+layout (binding = 2, rgba32f) readonly uniform image2D col_mat; // 1 x 10 vec4
+
+layout (binding = 3) uniform UBO
+{
+    int numBands;
+    //vec2 roiPix;
+} ubo;
+
+
+
+layout(std430, binding = 0) buffer OutputData
+{
+    int outputData;
+};
+
+void main() {
+
+    ivec3 pix = ivec3(gl_GlobalInvocationID.xyz); 
+
+    mat3 XYZ2sRGB = mat3(
+        3.2404542, -1.5371385, -0.4985314,
+        -0.9692660,  1.8760108,  0.0415560,
+        0.0556434, -0.2040259,  1.0572252);
+
+    mat3 XYZ2sBGR = mat3(
+        0.0556434, -0.2040259,  1.0572252,
+        -0.9692660,  1.8760108,  0.0415560,
+         3.2404542, -1.5371385, -0.4985314);
+
+    // TODO STOP COMPUTION OUT OF BOUNDS
+
+    vec3 value = vec3(0.0f);
+
+    for (int z = 0; z < ubo.numBands; z++){ 
+        vec3 A = imageLoad(col_mat, ivec2(z, 0)).xyz;
+        float B = float(imageLoad(corrected_cube, ivec3(pix.x, pix.y, z)).x);
+        value += A * B;
+    }
+
+    value = clamp((transpose(XYZ2sRGB) * value), 0.0f, 1.0f);
+
+    // gamma correction
+
+    if (any(lessThan(value,vec3(0.0031308f)))) {
+       // value *= 12.92f; // 323.0/25.0 // THESE VALUES BLOW UP
+    }
+    else {
+        value = 1.055f * (pow(value, vec3(0.416666666f))) - 0.055f;
+    }
+
+ /*   if (pix.x == int(ubo.roiPix.x) && pix.y == int(ubo.roiPix.y)) {
+        if (value.x * value.y * value.z > 0.3f) {
+            outputData = 1;
+        }
+        else {
+            outputData = 0;
+        }
+        
+    }
+    */
+    imageStore(color_image, ivec2(pix.x, pix.y), uvec4(clamp(value.xyz * 255.0, 0, 255), 0));
+
+}
+
+
+
+
+
+// #version 430
+
+// layout (local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
+
+
+// layout (binding = 0, r16ui) readonly uniform uimage3D hypercube;
+
+// layout (binding = 1, rgba32f) readonly uniform image1D xyz_bar; // .xyz transfer func .w wavelength
+// layout (binding = 2, r32f) readonly uniform image1D d65;
+
+// layout (binding = 4, r16ui) writeonly uniform uimage3D color_cube;
+
+
+// vec3 SpectrumToXYZ(int colorIndex, vec4 colorMatchingFunc[]) 
+// {
+//     int numBins = 10;
+//     vec3 XYZ = vec3(0.0f);
+//     float Ysum = 0; 
+
+//     for (int i = 0; i < numBins; ++i) { 
+
+//         float reflectance = float(imageLoad(hypercube, ivec3(pix.xy, i)).x);
+//         vec4 cmf = imageLoad(xyz_bar, i);
+//         float D65 = float(imageLoad(d65, pix.z).x);
+
+//         XYZ.x += reflectance * D65 * colorMatchingFunc.x; 
+//         XYZ.y += reflectance * D65 * colorMatchingFunc.y; 
+//         XYZ.z += reflectance * D65 * colorMatchingFunc.z; 
+//         Ysum += D65[i] * colorMatchingFunc[i][1]; 
+//     } 
+//     return XYZ /= Ysum;
+// } 
+ 
+// vec3 convertXYZtoRGB(vec3 XYZ, const float XYZ2RGB[3][3]) 
+// { 
+//     vec3 rgb = vec3(0.0f);
+    
+//     rgb.x = XYZ2RGB[0][0] * XYZ[0] + XYZ2RGB[0][1] * XYZ[1] + XYZ2RGB[0][2] * XYZ[2]; 
+//     rgb.y = XYZ2RGB[1][0] * XYZ[0] + XYZ2RGB[1][1] * XYZ[1] + XYZ2RGB[1][2] * XYZ[2]; 
+//     rgb.z = XYZ2RGB[2][0] * XYZ[0] + XYZ2RGB[2][1] * XYZ[1] + XYZ2RGB[2][2] * XYZ[2]; 
+
+//     return rgb;
+// } 
+
+// void main() {
+//     ivec3 pix = ivec3(gl_GlobalInvocationID.xyz);
+
+//     // 3 x 3 array for BGR image (instead of RGB)
+//     mat3 XYZ2sBGR = mat3(0.0556434, -0.2040259,  1.0572252,
+//                         -0.9692660,  1.8760108,  0.0415560,
+//                          3.2404542, -1.5371385, -0.4985314);
+      
+//     mat3 XYZ2sRGB = mat3(3.2404542, -1.5371385, -0.4985314,
+//                         -0.9692660,  1.8760108,  0.0415560,
+//                          0.0556434, -0.2040259,  1.0572252);
+
+
+    
+
+
+
+//     vec3 rgb = conversion_matrix * A * B.xyz * C;
+
+
+
+    
+
+
+
+
+
+// }

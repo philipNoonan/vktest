@@ -20,12 +20,18 @@ include_directories(external/tinygltf)
 include_directories(external/ktx/include)
 include_directories(external/ktx/other_include)
 include_directories(base)
+include_directories(src/camera_grabber)
+include_directories(src/pipeline)
 
 # FindVulkan added in CMAKE 3.7
 find_package(Vulkan)
 
 # use vcpkg for now, but change this later!
 find_package(OpenCV REQUIRED)
+
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 IF(UNIX AND NOT APPLE)
 	set(LINUX TRUE)
@@ -140,8 +146,12 @@ ELSE(WIN32)
 ENDIF(WIN32)
 
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/")
+#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/")
 
 add_subdirectory(base)
-add_subdirectory(plugins)
+add_subdirectory(src/camera_grabber)
+add_subdirectory(src/pipeline)
+add_subdirectory(src/viewer)
+
+#add_subdirectory(src)
 

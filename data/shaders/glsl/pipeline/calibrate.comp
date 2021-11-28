@@ -1,0 +1,53 @@
+/*
+Compute Shader to calibrate hyperspectral image data using collected white/dark textures
+
+Author: Philip Noonan (philip.noonan@kcl.ac.uk)
+Date Created: 15 Jun 2021
+*/
+#version 430
+
+layout (local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
+
+
+layout (binding = 0, r16ui) readonly uniform uimage2D raw_image;
+layout (binding = 1, r16ui) readonly uniform uimage2D white_image;
+layout (binding = 2, r16ui) readonly uniform uimage2D dark_image;
+
+layout (binding = 3, r32f) writeonly uniform image2D calibrated_image;
+layout (binding = 4, r8ui) readonly uniform uimage2D fov_mask;
+
+layout (binding = 5) uniform UBO
+{
+    float rho;
+} ubo;
+
+
+void main() {
+
+    // CHECK IF OUT OF BOUNDS - PO2 should prevent that but need to check it!
+    // each thread reads in one pixel from the large and writes to a separate layer in the hypercube
+
+    ivec2 pix = ivec2(gl_GlobalInvocationID.xy);
+
+    uint maskFlag = uint(imageLoad(fov_mask, ivec2(pix)).x);
+    if (maskFlag == 255) {
+        float raw =   float(imageLoad(raw_image, ivec2(pix)).x);
+        float white = float(imageLoad(white_image, ivec2(pix)).x);
+        float dark =  float(imageLoad(dark_image, ivec2(pix)).x);
+
+        float num = clamp(raw - dark, 0.0f, 1023.0f);
+        float denom = clamp(white - dark, 0.0f, 1023.0f);
+
+        float corrected = clamp(num / denom, 0.0f, 1.0f);
+
+        //float corrected_value = 1023.0f * clamp((clamp(raw - dark, 0.0f, 1023.0f) / white), 0.0f, 1.0f); // do this in floats?
+        
+        imageStore(calibrated_image, pix, vec4(corrected * ubo.rho, 0, 0, 0));
+    }
+    else {
+        imageStore(calibrated_image, pix, vec4(0, 0, 0, 0));
+    }
+
+
+
+}

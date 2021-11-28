@@ -1,0 +1,56 @@
+/*
+Compute Shader to apply correction matrix to hypercube data
+
+First attempt with no shared memory optiizations.
+Or packing the values into vec4 for better dot(vec4, vec4) arithmetics
+1 invocation per output pixel
+
+Possible optimizations
+load values into vec4s and dot them
+use shared memory 
+
+Author: Philip Noonan (philip.noonan@kcl.ac.uk)
+Date Created: 14 Jun 2021
+*/
+
+#version 430
+layout (local_size_x = 10, local_size_y = 16, local_size_z = 1) in;
+
+
+layout (binding = 0, r32f) readonly uniform image2DArray calibrated_cube; // a 512 x 272 x 16
+layout (binding = 1, r32f) writeonly uniform image2DArray corrected_cube; // a 512 x 272 x 10
+
+layout (binding = 2, r32f) readonly uniform image2D corr_mat; // a 10 x 16 image
+
+layout (binding = 3) uniform UBO
+{
+    int numBands;
+} ubo;
+
+
+shared float corrMat[10][16];
+
+void main() {
+    // each pix.z - invocation is one of the 10 output bands and sweeps through all input 16 bands
+    // pix.xy gives the image grid position in the demosaiced image
+    ivec3 pix = ivec3(gl_GlobalInvocationID.xyz); 
+
+    ivec2 localPix = ivec2(gl_LocalInvocationID.xy);
+
+    corrMat[localPix.x][localPix.y] = imageLoad(corr_mat, ivec2(localPix.y, localPix.x)).x;
+
+    barrier();
+
+    // TODO STOP COMPUTION OUT OF BOUNDS
+
+    float value = 0.0f;
+
+    for (int z = 0; z < ubo.numBands; z++){ 
+        float A = corrMat[pix.z][z];
+        float B = float(imageLoad(calibrated_cube, ivec3(pix.x, pix.y, z)).x);
+        value += A * B;
+    }
+
+    imageStore(corrected_cube, ivec3(pix.x, pix.y, pix.z), vec4(clamp(value, 0.0f, 1.0f), 0, 0, 0));
+
+}
