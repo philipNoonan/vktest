@@ -238,3 +238,5 @@ data/roboto*.*
 # submodules
 external/glm/*
 external/imgui/*
+external/pybind11/*
+external/json/*
