@@ -27,7 +27,7 @@
 
 
 	// Prepare a texture target that is used to store compute shader calculations
-	void HvsPlugin::prepareTextureTarget(vks::Texture* tex, uint32_t width, uint32_t height, uint32_t depth, uint32_t layers, uint32_t levels, VkFormat format)
+	void HvsPipeline::prepareTextureTarget(vks::Texture* tex, uint32_t width, uint32_t height, uint32_t depth, uint32_t layers, uint32_t levels, VkFormat format)
 	{
 		VkFormatProperties formatProperties;
 
@@ -139,17 +139,17 @@
 
 	}
 
-	void HvsPlugin::loadImageBuffer(void* buffer, VkDeviceSize size, uint32_t width, uint32_t height, VkFormat format)
+	void HvsPipeline::loadImageBuffer(void* buffer, VkDeviceSize size, uint32_t width, uint32_t height, VkFormat format)
 	{
 		textureRaw.fromBuffer(buffer, size, format, width, height, vulkanDevice, queue, VK_FILTER_NEAREST, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT, VK_IMAGE_LAYOUT_GENERAL);
 	}
 
-	void HvsPlugin::updateImageBuffer(void* buffer, VkDeviceSize size, VkFormat format)
+	void HvsPipeline::updateImageBuffer(void* buffer, VkDeviceSize size, VkFormat format)
 	{
 		textureRaw.update(buffer, size, format, vulkanDevice, queue);
 	}
 
-	void HvsPlugin::buildCommandBuffers()
+	void HvsPipeline::buildCommandBuffers()
 	{
 		VkCommandBufferBeginInfo cmdBufInfo = vks::initializers::commandBufferBeginInfo();
 
@@ -244,7 +244,7 @@
 	}
 
 	// gets run everytime the type of shader chosen is changed
-	void HvsPlugin::buildComputeCommandBuffer()
+	void HvsPipeline::buildComputeCommandBuffer()
 	{
 		// Flush the queue if we're rebuilding the command buffer after a pipeline change to ensure it's not currently in use
 		vkQueueWaitIdle(compute.queue);
@@ -277,7 +277,7 @@
 	}
 
 	// Setup vertices for a single uv-mapped quad
-	void HvsPlugin::generateQuad()
+	void HvsPipeline::generateQuad()
 	{
 		// Setup vertices for a single uv-mapped quad made from two triangles
 		std::vector<Vertex> vertices =
@@ -310,7 +310,7 @@
 			indices.data()));
 	}
 
-	void HvsPlugin::setupVertexDescriptions()
+	void HvsPipeline::setupVertexDescriptions()
 	{
 		// Binding description
 		vertices.bindingDescriptions = {
@@ -334,7 +334,7 @@
 		vertices.inputState.pVertexAttributeDescriptions = vertices.attributeDescriptions.data();
 	}
 
-	void HvsPlugin::setupDescriptorPool()
+	void HvsPipeline::setupDescriptorPool()
 	{
 		std::vector<VkDescriptorPoolSize> poolSizes = {
 			// Graphics pipelines uniform buffers
@@ -348,7 +348,7 @@
 		VK_CHECK_RESULT(vkCreateDescriptorPool(device, &descriptorPoolInfo, nullptr, &descriptorPool));
 	}
 
-	void HvsPlugin::setupDescriptorSetLayout()
+	void HvsPipeline::setupDescriptorSetLayout()
 	{
 		std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings = {
 			// Binding 0: Vertex shader uniform buffer
@@ -365,7 +365,7 @@
 		VK_CHECK_RESULT(vkCreatePipelineLayout(device, &pPipelineLayoutCreateInfo, nullptr, &graphics.pipelineLayout));
 	}
 
-	void HvsPlugin::setupDescriptorSet()
+	void HvsPipeline::setupDescriptorSet()
 	{
 		VkDescriptorSetAllocateInfo allocInfo =
 			vks::initializers::descriptorSetAllocateInfo(descriptorPool, &graphics.descriptorSetLayout, 1);
@@ -399,7 +399,7 @@
 
 	}
 
-	void HvsPlugin::preparePipelines()
+	void HvsPipeline::preparePipelines()
 	{
 		VkPipelineInputAssemblyStateCreateInfo inputAssemblyState =
 			vks::initializers::pipelineInputAssemblyStateCreateInfo(
@@ -485,14 +485,14 @@
 
 	}
 
-	void HvsPlugin::prepareGraphics()
+	void HvsPipeline::prepareGraphics()
 	{
 		// Semaphore for compute & graphics sync
 		VkSemaphoreCreateInfo semaphoreCreateInfo = vks::initializers::semaphoreCreateInfo();
 		VK_CHECK_RESULT(vkCreateSemaphore(device, &semaphoreCreateInfo, nullptr, &graphics.semaphore));
 	}
 
-	void HvsPlugin::prepareCompute()
+	void HvsPipeline::prepareCompute()
 	{
 		// Get a compute queue from the device
 		vkGetDeviceQueue(device, vulkanDevice->queueFamilyIndices.compute, 0, &compute.queue);
@@ -551,7 +551,7 @@
 			VkComputePipelineCreateInfo computePipelineCreateInfo =
 				vks::initializers::computePipelineCreateInfo(compute.pipelineLayout[SHADER_SOURCE::CALIBRATE], 0); // 0 for calibrate
 
-			std::string fileName = getShadersPath() + "pipeline/calibrate.comp.spv";
+			std::string fileName = getShadersPath() + "pipeline/calibration.comp.spv";
 			computePipelineCreateInfo.stage = loadShader(fileName, VK_SHADER_STAGE_COMPUTE_BIT);
 
 			VK_CHECK_RESULT(vkCreateComputePipelines(device, pipelineCache, 1, &computePipelineCreateInfo, nullptr, &compute.pipelines[SHADER_SOURCE::CALIBRATE]));
@@ -723,7 +723,7 @@
 	}
 
 	// Prepare and initialize uniform buffer containing shader uniforms
-	void HvsPlugin::prepareUniformBuffers()
+	void HvsPipeline::prepareUniformBuffers()
 	{
 		// uniform buffer objects for compute shaders
 		vulkanDevice->createBuffer(
@@ -779,7 +779,7 @@
 		updateUniformBuffers();
 	}
 
-	void HvsPlugin::updateUniformBuffers()
+	void HvsPipeline::updateUniformBuffers()
 	{
 		uboVS.projection = camera.matrices.perspective;
 		uboVS.modelView = camera.matrices.view;
@@ -794,7 +794,7 @@
 
 	}
 
-	void HvsPlugin::draw()
+	void HvsPipeline::draw()
 	{
 		VulkanExampleBase::prepareFrame();
 
@@ -848,7 +848,7 @@
 		VK_CHECK_RESULT(vkQueueSubmit(compute.queue, 1, &computeSubmitInfo, VK_NULL_HANDLE));
 	}
 
-	//void HvsPlugin::openCamera()
+	//void HvsPipeline::openCamera()
 	//{
 	//	if (!m_cap.open(0)) {
 	//		std::cout << "error could not open webcam" << std::endl;
@@ -867,11 +867,11 @@
 	//	}
 	//}
 
-	void HvsPlugin::openCamera() {
+	void HvsPipeline::openCamera() {
 		//m_cam_grab.start();
 	}
 
-	void* HvsPlugin::getCameraFrame()
+	void* HvsPipeline::getCameraFrame()
 	{
 		//m_cap.read(m_frame);
 		//cv::cvtColor(m_frame, m_frame4, cv::COLOR_BGR2RGBA);
@@ -881,13 +881,13 @@
 		//return (void*)m_frame4.data;
 	}
 
-	void HvsPlugin::setCamera(CameraGrabber &cameraGrabber) {
+	void HvsPipeline::setCamera(CameraGrabber &cameraGrabber) {
 		m_cam_grab = cameraGrabber;
 		m_image_width = m_cam_grab.get_width();
 		m_image_height = m_cam_grab.get_height();
 	}
 
-	void HvsPlugin::prepare()
+	void HvsPipeline::prepare()
 	{
 		//openCamera();
 
@@ -953,7 +953,7 @@
 		prepared = true;
 	}
 
-	void HvsPlugin::render()
+	void HvsPipeline::render()
 	{
 		if (!prepared)
 			return;
@@ -966,7 +966,7 @@
 		}
 	}
 
-	void HvsPlugin::OnUpdateUIOverlay(vks::UIOverlay* overlay)
+	void HvsPipeline::OnUpdateUIOverlay(vks::UIOverlay* overlay)
 	{
 		if (overlay->header("Settings")) {
 			if (overlay->comboBox("Shader", &compute.pipelineIndex, shaderNames)) {

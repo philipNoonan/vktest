@@ -42,7 +42,7 @@ enum SHADER_SOURCE
 	HC2SRGB = 3,
 	REMOSAIC = 4,
 };
-class HvsPlugin : public VulkanExampleBase
+class HvsPipeline : public VulkanExampleBase
 {
 private:
 	vks::Texture2D textureRaw;
@@ -132,7 +132,7 @@ public:
 
 	std::vector<std::string> shaderNames;
 
-	HvsPlugin() : VulkanExampleBase(ENABLE_VALIDATION)
+	HvsPipeline() : VulkanExampleBase(ENABLE_VALIDATION)
 	{
 		title = "HVS plugin example";
 		camera.type = Camera::CameraType::lookat;
@@ -142,7 +142,7 @@ public:
 	}
 
 
-	~HvsPlugin()
+	~HvsPipeline()
 	{
 		// Graphics
 		vkDestroyPipeline(device, graphics.pipeline, nullptr);

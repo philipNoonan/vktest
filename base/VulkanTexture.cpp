@@ -499,9 +499,7 @@ namespace vks
 
 	void Texture2D::update(void* buffer, VkDeviceSize bufferSize, VkFormat format, vks::VulkanDevice* device, VkQueue copyQueue)
 	{
-
 		copyCmd = device->createCommandBuffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY, true);
-
 
 		//VK_CHECK_RESULT(vkBindBufferMemory(device->logicalDevice, stagingBuffer, stagingMemory, 0));
 		vkGetBufferMemoryRequirements(device->logicalDevice, stagingBuffer, &memReqs);
@@ -513,7 +511,6 @@ namespace vks
 		vkUnmapMemory(device->logicalDevice, stagingMemory);
 
 		//VK_CHECK_RESULT(vkBindImageMemory(device->logicalDevice, image, deviceMemory, 0));
-
 
 		// Image barrier for optimal image (target)
         // Optimal image will be used as destination for the copy
@@ -547,6 +544,52 @@ namespace vks
 		
 
 	}
+
+	void Texture2D::download(void* buffer, VkDeviceSize bufferSize, VkFormat format, vks::VulkanDevice* device, VkQueue copyQueue) {
+		copyCmd = device->createCommandBuffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY, true);
+
+		//VK_CHECK_RESULT(vkBindBufferMemory(device->logicalDevice, stagingBuffer, stagingMemory, 0));
+		vkGetBufferMemoryRequirements(device->logicalDevice, stagingBuffer, &memReqs);
+
+		//VK_CHECK_RESULT(vkBindImageMemory(device->logicalDevice, image, deviceMemory, 0));
+
+		// Image barrier for optimal image (target)
+		// Optimal image will be used as destination for the copy
+		vks::tools::setImageLayout(
+			copyCmd,
+			image,
+			imageLayout,
+			VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+			subresourceRange);
+
+		vkCmdCopyImageToBuffer(
+			copyCmd,
+			image,
+			VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+			stagingBuffer,
+			1,
+			&bufferCopyRegion
+		);
+
+		// Change texture image layout to shader read after all mip levels have been copied
+		vks::tools::setImageLayout(
+			copyCmd,
+			image,
+			imageLayout,
+			VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+			subresourceRange);
+
+		// Copy texture data from staging buffer
+		uint8_t* data;
+		VK_CHECK_RESULT(vkMapMemory(device->logicalDevice, stagingMemory, 0, memReqs.size, 0, (void**)&data));
+		memcpy(buffer, data, bufferSize);
+		vkUnmapMemory(device->logicalDevice, stagingMemory);
+
+
+		device->flushCommandBuffer(copyCmd, copyQueue);
+	}
+
+
 	/**
 	* Load a 2D texture array including all mip levels
 	*
@@ -919,5 +962,7 @@ namespace vks
 		// Update descriptor image info member that can be used for setting up descriptor sets
 		updateDescriptor();
 	}
+
+
 
 }

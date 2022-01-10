@@ -8,29 +8,29 @@
 	// OS specific macros for the pipeline main entry points
 #if defined(_WIN32)
 // Windows entry point
-HvsPlugin* hvsPlugin;
+HvsPipeline* hvsPipeline;
 
 
 //CameraGrabber* cameraGrabber;
 LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	if (hvsPlugin != NULL)
+	if (hvsPipeline != NULL)
 	{
-		hvsPlugin->handleMessages(hWnd, uMsg, wParam, lParam);
+		hvsPipeline->handleMessages(hWnd, uMsg, wParam, lParam);
 	}
 	return (DefWindowProc(hWnd, uMsg, wParam, lParam));
 }
 
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
-	for (int32_t i = 0; i < __argc; i++) { HvsPlugin::args.push_back(__argv[i]); };
+	for (int32_t i = 0; i < __argc; i++) { HvsPipeline::args.push_back(__argv[i]); };
 
 	// Just pass the original pointer?
 	//ximeaGrabber = new XimeaGrabber(2048, 1088, 30);
 	//webcamGrabber = new WebcamGrabber(2048, 1088, 30);
 
 	CameraGrabber cameraGrabber;
-	cameraGrabber.set_source(CameraGrabber::INPUT_SOURCE::XIMEA);
+	cameraGrabber.set_source(CameraGrabber::INPUT_SOURCE::WEBCAM);
 	cameraGrabber.set_width(2048);
 	cameraGrabber.set_height(1088);
 
@@ -43,13 +43,13 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 
 	//cgChild.start();
 
-	hvsPlugin = new HvsPlugin();
-	hvsPlugin->initVulkan();
-	hvsPlugin->setupWindow(hInstance, WndProc);
-	hvsPlugin->setCamera(cameraGrabber);
-	hvsPlugin->prepare();
-	hvsPlugin->renderLoop();
-	delete(hvsPlugin);
+	hvsPipeline = new HvsPipeline();
+	hvsPipeline->initVulkan();
+	hvsPipeline->setupWindow(hInstance, WndProc);
+	hvsPipeline->setCamera(cameraGrabber);
+	hvsPipeline->prepare();
+	hvsPipeline->renderLoop();
+	delete(hvsPipeline);
 
 	return 0;
 }

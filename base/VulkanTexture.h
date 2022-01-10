@@ -77,6 +77,12 @@ class Texture2D : public Texture
 		VkFormat			format,
 		vks::VulkanDevice*	device,
 		VkQueue				copyQueue);
+	void download(
+		void*				buffer,
+		VkDeviceSize		bufferSize,
+		VkFormat			format,
+		vks::VulkanDevice*  device,
+		VkQueue				copyQueue);
 
   private:
 	  VkBuffer stagingBuffer;

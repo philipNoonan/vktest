@@ -14,20 +14,26 @@ endif()
 project(vk_HSI LANGUAGES C CXX)
 
 include_directories(external)
+include_directories(external/json/single_include/nlohmann)
 include_directories(external/glm)
 include_directories(external/imgui)
 include_directories(external/tinygltf)
+include_directories(external/stb)
+include_directories(external/pybind11/include)
 include_directories(external/ktx/include)
 include_directories(external/ktx/other_include)
 include_directories(base)
 include_directories(src/camera_grabber)
 include_directories(src/pipeline)
+include_directories(tests)
+
 
 # FindVulkan added in CMAKE 3.7
 find_package(Vulkan)
 
 # use vcpkg for now, but change this later!
 find_package(OpenCV REQUIRED)
+
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -152,6 +158,10 @@ add_subdirectory(base)
 add_subdirectory(src/camera_grabber)
 add_subdirectory(src/pipeline)
 add_subdirectory(src/viewer)
+add_subdirectory(external/pybind11)
+add_subdirectory(tests/00_calibration)
+add_subdirectory(tests/01_demosaic)
+add_subdirectory(tests/02_correction)
 
 #add_subdirectory(src)
 

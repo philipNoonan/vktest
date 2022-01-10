@@ -203,6 +203,7 @@ void VulkanExampleBase::prepare()
 	}
 }
 
+
 VkPipelineShaderStageCreateInfo VulkanExampleBase::loadShader(std::string fileName, VkShaderStageFlagBits stage)
 {
 	VkPipelineShaderStageCreateInfo shaderStage = {};
@@ -903,6 +904,7 @@ bool VulkanExampleBase::initVulkan()
 	err = createInstance(settings.validation);
 	if (err) {
 		vks::tools::exitFatal("Could not create Vulkan instance : \n" + vks::tools::errorString(err), err);
+
 		return false;
 	}
 
@@ -983,10 +985,13 @@ bool VulkanExampleBase::initVulkan()
 		vks::tools::exitFatal("Could not create Vulkan device: \n" + vks::tools::errorString(res), res);
 		return false;
 	}
+
 	device = vulkanDevice->logicalDevice;
 
 	// Get a graphics queue from the device
 	vkGetDeviceQueue(device, vulkanDevice->queueFamilyIndices.graphics, 0, &queue);
+	//std::cout << "g " << vulkanDevice->queueFamilyIndices.graphics << std::endl;
+	//std::cout << "c " << vulkanDevice->queueFamilyIndices.compute << std::endl;
 
 	// Find a suitable depth format
 	VkBool32 validDepthFormat = vks::tools::getSupportedDepthFormat(physicalDevice, &depthFormat);
@@ -2475,6 +2480,8 @@ void VulkanExampleBase::setupWindow()
 {
 }
 #endif
+
+void VulkanExampleBase::render() {}
 
 void VulkanExampleBase::viewChanged() {}
 

@@ -17,10 +17,10 @@ Date Created: 14 Jun 2021
 layout (local_size_x = 10, local_size_y = 16, local_size_z = 1) in;
 
 
-layout (binding = 0, r32f) readonly uniform image2DArray calibrated_cube; // a 512 x 272 x 16
-layout (binding = 1, r32f) writeonly uniform image2DArray corrected_cube; // a 512 x 272 x 10
+layout (binding = 0, r32f) readonly uniform image2DArray calibrated_cube;
+layout (binding = 1, r32f) writeonly uniform image2DArray corrected_cube;
 
-layout (binding = 2, r32f) readonly uniform image2D corr_mat; // a 10 x 16 image
+layout (binding = 2, r32f) readonly uniform image2D corr_mat;
 
 layout (binding = 3) uniform UBO
 {
