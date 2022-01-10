@@ -15,12 +15,12 @@
 
 
 
-#if defined(_WIN32)
+//#if defined(_WIN32)
 
-int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int);
+//int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int);
 
-#elif (defined(VK_USE_PLATFORM_IOS_MVK) || defined(VK_USE_PLATFORM_MACOS_MVK))
-#if defined(VK_EXAMPLE_XCODE_GENERATED)
-int main(const int argc, const char* argv[])
-#endif
-#endif
+//#elif (defined(VK_USE_PLATFORM_IOS_MVK) || defined(VK_USE_PLATFORM_MACOS_MVK))
+//#if defined(VK_EXAMPLE_XCODE_GENERATED)
+int main(const int argc, const char* argv[]);
+//#endif
+//#endif

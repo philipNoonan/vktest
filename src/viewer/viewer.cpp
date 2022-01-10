@@ -1,7 +1,7 @@
 #include "viewer.h"
 
 
-
+/*
 //int Viewer::main() {
 
 
@@ -55,23 +55,32 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 }
 
 #elif (defined(VK_USE_PLATFORM_IOS_MVK) || defined(VK_USE_PLATFORM_MACOS_MVK))
-#if defined(VK_EXAMPLE_XCODE_GENERATED)
+//#if defined(VK_EXAMPLE_XCODE_GENERATED)
+*/
 HvsPlugin* hvsPlugin;
 int main(const int argc, const char* argv[])
 {
+	CameraGrabber cameraGrabber;
+	cameraGrabber.set_source(CameraGrabber::INPUT_SOURCE::XIMEA);
+	cameraGrabber.set_width(2048);
+	cameraGrabber.set_height(1088);
+
+
+	cameraGrabber.start();
 	@autoreleasepool
 	{
 		for (size_t i = 0; i < argc; i++) { HvsPlugin::args.push_back(argv[i]); };
 		hvsPlugin = new HvsPlugin();
 		hvsPlugin->initVulkan();
 		hvsPlugin->setupWindow(nullptr);
+		hvsPlugin->setCamera(cameraGrabber);
 		hvsPlugin->prepare();
 		hvsPlugin->renderLoop();
 		delete(hvsPlugin);
 	}
 	return 0;
 }
-
+/*
 #elif defined(VK_USE_PLATFORM_ANDROID_KHR)
 // Android entry point
 HvsPlugin* hvsPlugin;
@@ -159,7 +168,7 @@ int main(const int argc, const char* argv[])
 #endif
 #endif
 
-
+*/
 
 
 
