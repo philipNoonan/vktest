@@ -8,7 +8,7 @@
 
 #include "vulkanexamplebase.h"
 
-#if (defined(VK_USE_PLATFORM_MACOS_MVK) && defined(VK_EXAMPLE_XCODE_GENERATED))
+#if (defined(VK_USE_PLATFORM_MACOS_MVK))
 #include <Cocoa/Cocoa.h>
 #include <Carbon/Carbon.h>
 #include <QuartzCore/CAMetalLayer.h>
@@ -161,7 +161,9 @@ void VulkanExampleBase::createCommandBuffers()
 
 void VulkanExampleBase::destroyCommandBuffers()
 {
-	vkFreeCommandBuffers(device, cmdPool, static_cast<uint32_t>(drawCmdBuffers.size()), drawCmdBuffers.data());
+	if (drawCmdBuffers.size() > 0) {
+		vkFreeCommandBuffers(device, cmdPool, static_cast<uint32_t>(drawCmdBuffers.size()), drawCmdBuffers.data());
+	}
 }
 
 std::string VulkanExampleBase::getShadersPath() const
@@ -182,6 +184,8 @@ void VulkanExampleBase::prepare()
 		vks::debugmarker::setup(device);
 	}
 	initSwapchain();
+	std::cout << "wait start" << std::endl;
+
 	createCommandPool();
 	setupSwapChain();
 	createCommandBuffers();
@@ -190,6 +194,8 @@ void VulkanExampleBase::prepare()
 	setupRenderPass();
 	createPipelineCache();
 	setupFrameBuffer();
+		std::cout << "wait end " << settings.overlay << std::endl;
+
 	settings.overlay = settings.overlay && (!benchmark.active);
 	if (settings.overlay) {
 		UIOverlay.device = vulkanDevice;
@@ -621,7 +627,7 @@ void VulkanExampleBase::renderLoop()
 		}
 		updateOverlay();
 	}
-#elif (defined(VK_USE_PLATFORM_MACOS_MVK) && defined(VK_EXAMPLE_XCODE_GENERATED))
+#elif (defined(VK_USE_PLATFORM_MACOS_MVK))
 	[NSApp run];
 #endif
 	// Flush device to make sure all resources can be freed
@@ -818,6 +824,7 @@ VulkanExampleBase::VulkanExampleBase(bool enableValidation)
 VulkanExampleBase::~VulkanExampleBase()
 {
 	// Clean up Vulkan resources
+	//std::cout << "pre" << std::endl;
 	swapChain.cleanup();
 	if (descriptorPool != VK_NULL_HANDLE)
 	{
@@ -829,7 +836,6 @@ VulkanExampleBase::~VulkanExampleBase()
 	{
 		vkDestroyFramebuffer(device, frameBuffers[i], nullptr);
 	}
-
 	for (auto& shaderModule : shaderModules)
 	{
 		vkDestroyShaderModule(device, shaderModule, nullptr);
@@ -920,7 +926,7 @@ bool VulkanExampleBase::initVulkan()
 		VkDebugReportFlagsEXT debugReportFlags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
 		// Additional flags include performance info, loader and layer debug messages, etc.
 		vks::debug::setupDebugging(instance, debugReportFlags, VK_NULL_HANDLE);
-	}
+	}	
 
 	// Physical device
 	uint32_t gpuCount = 0;
@@ -929,7 +935,8 @@ bool VulkanExampleBase::initVulkan()
 	if (gpuCount == 0) {
 		vks::tools::exitFatal("No device with Vulkan support found", -1);
 		return false;
-	}
+	}	
+
 	// Enumerate devices
 	std::vector<VkPhysicalDevice> physicalDevices(gpuCount);
 	err = vkEnumeratePhysicalDevices(instance, &gpuCount, physicalDevices.data());
@@ -968,6 +975,7 @@ bool VulkanExampleBase::initVulkan()
 
 	physicalDevice = physicalDevices[selectedDevice];
 
+
 	// Store properties (including limits), features and memory properties of the physical device (so that examples can check against them)
 	vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
 	vkGetPhysicalDeviceFeatures(physicalDevice, &deviceFeatures);
@@ -980,7 +988,9 @@ bool VulkanExampleBase::initVulkan()
 	// This is handled by a separate class that gets a logical device representation
 	// and encapsulates functions related to a device
 	vulkanDevice = new vks::VulkanDevice(physicalDevice);
+
 	VkResult res = vulkanDevice->createLogicalDevice(enabledFeatures, enabledDeviceExtensions, deviceCreatepNextChain);
+
 	if (res != VK_SUCCESS) {
 		vks::tools::exitFatal("Could not create Vulkan device: \n" + vks::tools::errorString(res), res);
 		return false;
@@ -1485,7 +1495,6 @@ void VulkanExampleBase::handleAppCommand(android_app * app, int32_t cmd)
 	}
 }
 #elif (defined(VK_USE_PLATFORM_IOS_MVK) || defined(VK_USE_PLATFORM_MACOS_MVK))
-#if defined(VK_EXAMPLE_XCODE_GENERATED)
 @interface AppDelegate : NSObject<NSApplicationDelegate>
 {
 }
@@ -1674,11 +1683,9 @@ static CVReturn displayLinkOutputCallback(CVDisplayLinkRef displayLink, const CV
 }
 
 @end
-#endif
 
 void* VulkanExampleBase::setupWindow(void* view)
 {
-#if defined(VK_EXAMPLE_XCODE_GENERATED)
 	NSApp = [NSApplication sharedApplication];
 	[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
 	[NSApp setDelegate:[AppDelegate new]];
@@ -1700,9 +1707,7 @@ void* VulkanExampleBase::setupWindow(void* view)
 	[window setDelegate:nsView];
 	[window setContentView:nsView];
 	this->view = (__bridge void*)nsView;
-#else
-	this->view = view;
-#endif
+
 	return view;
 }
 

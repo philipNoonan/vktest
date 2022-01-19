@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.21)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
@@ -19,7 +19,6 @@ include_directories(external/glm)
 include_directories(external/imgui)
 include_directories(external/tinygltf)
 include_directories(external/stb)
-include_directories(external/pybind11/include)
 include_directories(external/ktx/include)
 include_directories(external/ktx/other_include)
 include_directories(base)
@@ -28,8 +27,14 @@ include_directories(src/pipeline)
 include_directories(tests)
 
 
+# find python3 to ensure that pybind11 doesnt find old python lib interpreters
+find_package(Python COMPONENTS Interpreter Development)
+#find_package(pybind11 CONFIG)
+
 # FindVulkan added in CMAKE 3.7
-find_package(Vulkan)
+find_package(Vulkan REQUIRED)
+message(STATUS "vulkan glslc " ${Vulkan_GLSLC_EXECUTABLE})
+message(STATUS "vulkan glslang validator " ${Vulkan_GLSLANG_VALIDATOR_EXECUTABLE})
 
 # use vcpkg for now, but change this later!
 find_package(OpenCV REQUIRED)
@@ -98,7 +103,7 @@ ELSEIF(LINUX)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DVK_USE_PLATFORM_XCB_KHR")
 	ENDIF(USE_D2D_WSI)
 ELSEIF(APPLE)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DVK_USE_PLATFORM_MACOS_MVK -DVK_EXAMPLE_XCODE_GENERATED")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DVK_USE_PLATFORM_MACOS_MVK")
 	# Todo : android?
 ENDIF(WIN32)
 
@@ -130,17 +135,8 @@ ENDIF(MSVC)
 add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-file(GLOB SOURCE *.cpp )
-
-# Build all plugins
-function(buildPlugins)
-	foreach(PLUGIN ${PLUGINS})
-		buildPlugin(${PLUGIN})
-	endforeach(PLUGIN)
-endfunction(buildPlugins)
-
 add_definitions(-DVK_EXAMPLE_DATA_DIR=\"${CMAKE_SOURCE_DIR}/data/\")
+
 
 
 IF(WIN32)
@@ -162,6 +158,7 @@ add_subdirectory(external/pybind11)
 add_subdirectory(tests/00_calibration)
 add_subdirectory(tests/01_demosaic)
 add_subdirectory(tests/02_correction)
+add_subdirectory(tests/03_colorize)
 
 #add_subdirectory(src)
 

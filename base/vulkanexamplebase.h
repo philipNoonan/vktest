@@ -57,6 +57,8 @@
 #include <numeric>
 #include <array>
 
+#define VK_ENABLE_BETA_EXTENSIONS
+
 #include "vulkan/vulkan.h"
 
 #include "keycodes.hpp"
@@ -520,7 +522,6 @@ int main(const int argc, const char *argv[])													    \
 	return 0;																						\
 }
 #elif (defined(VK_USE_PLATFORM_IOS_MVK) || defined(VK_USE_PLATFORM_MACOS_MVK))
-#if defined(VK_EXAMPLE_XCODE_GENERATED)
 #define VULKAN_PLUGIN_MAIN()																		\
 HvsPlugin *hvsPlugin;																		\
 int main(const int argc, const char *argv[])														\
@@ -537,7 +538,4 @@ int main(const int argc, const char *argv[])														\
 	}																								\
 	return 0;																						\
 }
-#else
-#define VULKAN_PLUGIN_MAIN()
-#endif
 #endif

@@ -25,7 +25,6 @@
 
 
 
-
 	// Prepare a texture target that is used to store compute shader calculations
 	void HvsPipeline::prepareTextureTarget(vks::Texture* tex, uint32_t width, uint32_t height, uint32_t depth, uint32_t layers, uint32_t levels, VkFormat format)
 	{
@@ -494,11 +493,12 @@
 
 	void HvsPipeline::prepareCompute()
 	{
+
 		// Get a compute queue from the device
 		vkGetDeviceQueue(device, vulkanDevice->queueFamilyIndices.compute, 0, &compute.queue);
 
 		// One pipeline for each effect
-		shaderNames = { "calibrate" , "demosaic",  "correction", "hc2srgb"//, "remosaic"
+		shaderNames = { "calibration" , "demosaic",  "correction", "hc2srgb"//, "remosaic"
 		};
 
 		// Create compute pipeline

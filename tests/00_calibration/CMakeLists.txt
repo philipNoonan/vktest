@@ -30,6 +30,3 @@ target_include_directories(${TEST_NAME} PUBLIC ${Vulkan_INCLUDE_DIR})
 
 set_target_properties(${TEST_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/tests)
 
-if(RESOURCE_INSTALL_DIR)
-install(TARGETS ${TEST_NAME} DESTINATION ${CMAKE_INSTALL_BINDIR})
-endif()

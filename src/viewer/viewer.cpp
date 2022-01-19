@@ -57,7 +57,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 #elif (defined(VK_USE_PLATFORM_IOS_MVK) || defined(VK_USE_PLATFORM_MACOS_MVK))
 //#if defined(VK_EXAMPLE_XCODE_GENERATED)
 */
-HvsPlugin* hvsPlugin;
+HvsPipeline* hvsPipeline;
 int main(const int argc, const char* argv[])
 {
 	CameraGrabber cameraGrabber;
@@ -69,14 +69,14 @@ int main(const int argc, const char* argv[])
 	cameraGrabber.start();
 	@autoreleasepool
 	{
-		for (size_t i = 0; i < argc; i++) { HvsPlugin::args.push_back(argv[i]); };
-		hvsPlugin = new HvsPlugin();
-		hvsPlugin->initVulkan();
-		hvsPlugin->setupWindow(nullptr);
-		hvsPlugin->setCamera(cameraGrabber);
-		hvsPlugin->prepare();
-		hvsPlugin->renderLoop();
-		delete(hvsPlugin);
+		for (size_t i = 0; i < argc; i++) { HvsPipeline::args.push_back(argv[i]); };
+		hvsPipeline = new HvsPipeline();
+		hvsPipeline->initVulkan();
+		hvsPipeline->setupWindow(nullptr);
+		hvsPipeline->setCamera(cameraGrabber);
+		hvsPipeline->prepare();
+		hvsPipeline->renderLoop();
+		delete(hvsPipeline);
 	}
 	return 0;
 }

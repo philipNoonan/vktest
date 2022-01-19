@@ -107,6 +107,7 @@ namespace vks
 			pfnCmdDebugMarkerBegin = reinterpret_cast<PFN_vkCmdDebugMarkerBeginEXT>(vkGetDeviceProcAddr(device, "vkCmdDebugMarkerBeginEXT"));
 			pfnCmdDebugMarkerEnd = reinterpret_cast<PFN_vkCmdDebugMarkerEndEXT>(vkGetDeviceProcAddr(device, "vkCmdDebugMarkerEndEXT"));
 			pfnCmdDebugMarkerInsert = reinterpret_cast<PFN_vkCmdDebugMarkerInsertEXT>(vkGetDeviceProcAddr(device, "vkCmdDebugMarkerInsertEXT"));
+			//pfnCmdDebugMarkerReport = reinterpret_cast<PFN_vkCmdDebugMarkerReportEXT>(vkGetDeviceProcAddr(devicem "vkCmdDebugMarkerReportEXT"))
 
 			// Set flag if at least one function pointer is present
 			active = (pfnDebugMarkerSetObjectName != VK_NULL_HANDLE);

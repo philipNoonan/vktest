@@ -17,7 +17,6 @@
 #pragma once
 
 
-
 #include "vulkanexamplebase.h"
 
 #include "opencv2/opencv.hpp"
@@ -28,6 +27,7 @@
 
 #define VERTEX_BUFFER_BIND_ID 0
 #define ENABLE_VALIDATION true
+
 
 struct Vertex {
 	float pos[3];
@@ -139,6 +139,12 @@ public:
 		camera.setPosition(glm::vec3(0.0f, 0.0f, -2.0f));
 		camera.setRotation(glm::vec3(0.0f));
 		camera.setPerspective(60.0f, (float)width * 0.5f / (float)height, 0.01f, 256.0f);
+
+		enabledInstanceExtensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+		enabledDeviceExtensions.push_back(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
+		enabledInstanceExtensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+		//enabledDeviceExtensions.push_back();
+
 	}
 
 
@@ -149,6 +155,7 @@ public:
 		vkDestroyPipelineLayout(device, graphics.pipelineLayout, nullptr);
 		vkDestroyDescriptorSetLayout(device, graphics.descriptorSetLayout, nullptr);
 		vkDestroySemaphore(device, graphics.semaphore, nullptr);
+
 
 		// Compute
 		for (auto& pipeline : compute.pipelines)

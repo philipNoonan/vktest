@@ -52,12 +52,13 @@ private:
 
 	HANDLE xiH = NULL;
 	XI_IMG m_image;
-	int32_t m_exposure_time = 10;
+	int32_t m_exposure_time = 20;
 
     cv::VideoCapture m_cap;
     cv::Mat m_mat;
 	cv::Mat m_mat_large;
 	cv::Mat m_mat_16;
+
 
 
 	INPUT_SOURCE m_input_source;

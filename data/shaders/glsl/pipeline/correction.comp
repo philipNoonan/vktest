@@ -9,12 +9,12 @@ Possible optimizations
 load values into vec4s and dot them
 use shared memory 
 
-Author: Philip Noonan (philip.noonan@kcl.ac.uk)
+Author: Philip Noonan (philip.noonan@hypervisionsurgical.com)
 Date Created: 14 Jun 2021
 */
 
 #version 430
-layout (local_size_x = 10, local_size_y = 16, local_size_z = 1) in;
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
 
 layout (binding = 0, r32f) readonly uniform image2DArray calibrated_cube;
@@ -28,7 +28,7 @@ layout (binding = 3) uniform UBO
 } ubo;
 
 
-shared float corrMat[10][16];
+shared float corrMat[16][16];
 
 void main() {
     // each pix.z - invocation is one of the 10 output bands and sweeps through all input 16 bands
