@@ -30,7 +30,7 @@ def main():
     
     hvs = corr.HvsTest()
     hvs.setCalibratedHypercube(testInput)
-    hvs.setCorrectionMatrix(testCameraJson["cameras"][0]["correction_matrix"])
+    hvs.setCorrectionMatrix(testCameraJson["cameras"][1]["correction_matrix"])
 
 
     hvs.initGPU()

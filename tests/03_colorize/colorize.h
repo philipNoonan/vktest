@@ -128,7 +128,7 @@ private:
 	// Test Specific Variables
 	int32_t image_width_ = 2048;
 	int32_t image_height_ = 1088;
-	int32_t image_depth_ = 10;
+	int32_t image_depth_ = 16;
 	
 	vks::Texture2D srgb_image_;
 	vks::Texture2DArray calibrated_corrected_hypercube_;

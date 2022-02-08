@@ -26,7 +26,9 @@ def main():
     with open(str(Path(__file__).absolute().parents[2] / 'data/cameras/calibration/config.json')) as json_file:
         testCameraJson = json.load(json_file)
 
-    padded_color_matrix = (np.c_[testCameraJson["cameras"][0]["sRGB_correction_v2"], np.ones(10)])
+    padded_color_matrix = (np.c_[testCameraJson["cameras"][1]["sRGB_correction_v2"], np.ones(16)])
+
+    print(padded_color_matrix)
 
     hvs = colo.HvsTest()
 

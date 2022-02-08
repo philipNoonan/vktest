@@ -101,6 +101,7 @@
 
 		vulkanDevice->flushCommandBuffer(layoutCmd, queue, true);
 
+
 		// Create sampler
 		VkSamplerCreateInfo sampler = vks::initializers::samplerCreateInfo();
 		sampler.magFilter = VK_FILTER_LINEAR;
@@ -178,7 +179,7 @@
 			// We won't be changing the layout of the image
 			imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
 			imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
-			imageMemoryBarrier.image = textureCalibrated.image;
+			imageMemoryBarrier.image = sRGB.image;
 			imageMemoryBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
 			imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
 			imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
@@ -265,7 +266,7 @@
 		vkCmdBindPipeline(compute.commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, compute.pipelines[SHADER_SOURCE::CORRECTION]);
 		vkCmdBindDescriptorSets(compute.commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, compute.pipelineLayout[SHADER_SOURCE::CORRECTION], 0, 1, &compute.descriptorSet[SHADER_SOURCE::CORRECTION], 0, 0);
 
-		vkCmdDispatch(compute.commandBuffer, m_image_width / 10, m_image_height / 16, 10);
+		vkCmdDispatch(compute.commandBuffer, m_image_width / 16, m_image_height / 16, 16);
 
 		vkCmdBindPipeline(compute.commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, compute.pipelines[SHADER_SOURCE::HC2SRGB]);
 		vkCmdBindDescriptorSets(compute.commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, compute.pipelineLayout[SHADER_SOURCE::HC2SRGB], 0, 1, &compute.descriptorSet[SHADER_SOURCE::HC2SRGB], 0, 0);
@@ -381,7 +382,7 @@
 		VK_CHECK_RESULT(vkAllocateDescriptorSets(device, &allocInfo, &graphics.descriptorSetHypercube));
 		std::vector<VkWriteDescriptorSet> writeDescriptorSets = {
 			vks::initializers::writeDescriptorSet(graphics.descriptorSetHypercube, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0, &uniformBufferVS.descriptor),
-			vks::initializers::writeDescriptorSet(graphics.descriptorSetHypercube, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &hypercubeCalibratedColorCorrected.descriptor),
+			vks::initializers::writeDescriptorSet(graphics.descriptorSetHypercube, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &sRGB.descriptor),
 
 		};
 		vkUpdateDescriptorSets(device, writeDescriptorSets.size(), writeDescriptorSets.data(), 0, nullptr);
@@ -476,8 +477,9 @@
 
 
 
+		shaderStages[1] = loadShader(getShadersPath() + "pipeline/texture.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
 
-		shaderStages[1] = loadShader(getShadersPath() + "pipeline/textureHypercube.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
+		//shaderStages[1] = loadShader(getShadersPath() + "pipeline/textureHypercube.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
 		pipelineCreateInfo.stageCount = shaderStages.size();
 		pipelineCreateInfo.pStages = shaderStages.data();
 		VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, pipelineCache, 1, &pipelineCreateInfo, nullptr, &graphics.pipelineHypercube));
@@ -906,35 +908,66 @@
 		prepareUniformBuffers();
 
 		// TEXTURES THAT HAVE HOST ACCESS
-		std::vector<uint16_t> blankWhite(m_image_width * m_image_height, 1023);
+		std::vector<uint16_t> blankWhite(m_image_width * m_image_height, 600);
 		std::vector<uint16_t> blankDark(m_image_width * m_image_height, 0);
 		std::vector<uint8_t> blankMask(m_image_width * m_image_height, 255);
 
-		std::vector<float>correctionMatrixValues(160, 1.0); // load from file
-		std::vector<float>colorMatrixValues(10*4, 1.0); // load from file
+
+		// camera config json
+		std::string camera_config_file = getAssetPath() + "/cameras/calibration/config.json";
+		std::ifstream ifs(camera_config_file);
+		json j;
+		ifs >> j;
+
+		//std::cout << "size : " << j["cameras"].size() << std::endl;
+		//auto testCorMat = j["cameras"][0]["correction_matrix"]
+
+		std::vector<float> correctionMatrixValues;
+		for (auto& band : j["cameras"][1]["correction_matrix"]) {
+			for (auto& elem : band){ 
+				correctionMatrixValues.push_back(elem);
+			}
+		}
+
+		std::vector<float> colorMatrixValues;
+		for (auto& band : j["cameras"][1]["sRGB_correction_v2"]) {
+			for (auto& elem : band){ 
+				colorMatrixValues.push_back(elem);
+			}
+		}
+
+
 
 		whiteReference.fromBuffer(blankWhite.data(), m_image_width * m_image_height * sizeof(uint16_t), VK_FORMAT_R16_UINT, m_image_width, m_image_height, vulkanDevice, queue, VK_FILTER_LINEAR, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT, VK_IMAGE_LAYOUT_GENERAL);
 		darkReference.fromBuffer(blankDark.data(), m_image_width * m_image_height * sizeof(uint16_t), VK_FORMAT_R16_UINT, m_image_width, m_image_height, vulkanDevice, queue, VK_FILTER_LINEAR, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT, VK_IMAGE_LAYOUT_GENERAL);
 		fovMask.fromBuffer(blankMask.data(), m_image_width * m_image_height * sizeof(uint8_t), VK_FORMAT_R8_UINT, m_image_width, m_image_height, vulkanDevice, queue, VK_FILTER_LINEAR, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT, VK_IMAGE_LAYOUT_GENERAL);
 
-		correctionMatrix.fromBuffer(&correctionMatrixTable962010[0], 10 * 16 * sizeof(float), VK_FORMAT_R32_SFLOAT, 16, 10, vulkanDevice, queue, VK_FILTER_LINEAR, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT, VK_IMAGE_LAYOUT_GENERAL);
-		colorMatrix.fromBuffer(colorMatrixValues.data(), 10 * 4 * sizeof(float), VK_FORMAT_R32G32B32A32_SFLOAT, 1, 10, vulkanDevice, queue, VK_FILTER_LINEAR, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT, VK_IMAGE_LAYOUT_GENERAL);
+		correctionMatrix.fromBuffer(correctionMatrixValues.data(), 16 * 16 * sizeof(float), VK_FORMAT_R32_SFLOAT, 16, 16, vulkanDevice, queue, VK_FILTER_LINEAR, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT, VK_IMAGE_LAYOUT_GENERAL);
+		colorMatrix.fromBuffer(colorMatrixValues.data(), 16 * 4 * sizeof(float), VK_FORMAT_R32G32B32A32_SFLOAT, 16, 1, vulkanDevice, queue, VK_FILTER_LINEAR, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT, VK_IMAGE_LAYOUT_GENERAL);
 
 		//prepareTextureTarget(&whiteReference, m_image_width, m_image_height, m_image_depth, 1, VK_FORMAT_R16_UINT);
 		//prepareTextureTarget(&darkReference, m_image_width, m_image_height, m_image_depth, 1, VK_FORMAT_R16_UINT);
 		//prepareTextureTarget(&fovMask, m_image_width, m_image_height, m_image_depth, 1, VK_FORMAT_R8_UINT);
 
 		// TEXTURES THAT ONLY EXIST IN SHADERS
-		prepareTextureTarget(&textureCalibrated, textureRaw.width, textureRaw.height, m_image_depth, 1, 1, VK_FORMAT_R8G8B8A8_UINT);
+		//prepareTextureTarget(&textureCalibrated, textureRaw.width, textureRaw.height, m_image_depth, 1, 1, VK_FORMAT_R8G8B8A8_UINT);
 		prepareTextureTarget(&calibrated, m_image_width, m_image_height, m_image_depth, 1, 4, VK_FORMAT_R32_SFLOAT);
 
 		
-		prepareTextureTarget(&tiled, m_image_width, m_image_height, m_image_depth, 1, 1, VK_FORMAT_R32_SFLOAT);
-		prepareTextureTarget(&tiledInput, m_image_width, m_image_height, m_image_depth, 1, 1, VK_FORMAT_R32_SFLOAT);
-		prepareTextureTarget(&sRGB, m_image_width, m_image_height, 1, 1, 1, VK_FORMAT_R8G8B8A8_UINT);
+		prepareTextureTarget(&tiled, m_image_width / 4, m_image_height / 4, m_image_depth, 1, 1, VK_FORMAT_R32_SFLOAT);
+		prepareTextureTarget(&tiledInput, m_image_width / 4, m_image_height / 4, m_image_depth, 1, 1, VK_FORMAT_R32_SFLOAT);
+		prepareTextureTarget(&sRGB, m_image_width / 4, m_image_height / 4, 1, 1, 1, VK_FORMAT_R8G8B8A8_UINT);
 
-		prepareTextureTarget(&hypercubeCalibrated, m_image_width, m_image_height, m_image_depth, m_number_bands, 1, VK_FORMAT_R32_SFLOAT);
-		prepareTextureTarget(&hypercubeCalibratedColorCorrected, m_image_width, m_image_height, m_image_depth, m_number_bands_corrected, 1, VK_FORMAT_R32_SFLOAT);
+		//sRGB.fromBuffer(blankMask.data(), (m_image_width / 4) * (m_image_height / 4) * 4 * sizeof(uint8_t), VK_FORMAT_R8G8B8A8_UINT, m_image_width / 4, m_image_height / 4, vulkanDevice, queue, VK_FILTER_LINEAR, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT, VK_IMAGE_LAYOUT_GENERAL);
+
+
+		prepareTextureTarget(&hypercubeCalibrated, m_image_width / 4, m_image_height / 4, m_image_depth, m_number_bands, 1, VK_FORMAT_R32_SFLOAT);
+		prepareTextureTarget(&hypercubeCalibratedColorCorrected, m_image_width / 4, m_image_height / 4, m_image_depth, m_number_bands_corrected, 1, VK_FORMAT_R32_SFLOAT);
+
+		//std::vector<float> output_image(m_image_width * m_image_height, -1.0f);
+		//hypercubeCalibrated.fromBuffer(output_image.data(), m_image_width * m_image_height * sizeof(float_t), VK_FORMAT_R32_SFLOAT, m_image_width / 4, m_image_height / 4, m_image_depth, vulkanDevice, queue, VK_FILTER_LINEAR, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT, VK_IMAGE_LAYOUT_GENERAL);
+		//hypercubeCalibratedColorCorrected.fromBuffer(output_image.data(), m_image_width * m_image_height * sizeof(float_t), VK_FORMAT_R32_SFLOAT, m_image_width / 4, m_image_height / 4, m_image_depth, vulkanDevice, queue, VK_FILTER_LINEAR, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT, VK_IMAGE_LAYOUT_GENERAL);
+
 
 		//vks::Texture2DArray hypercubeCalibrated;
 		//vks::Texture2DArray hypercubeColorCorrected;
@@ -969,7 +1002,13 @@
 	void HvsPipeline::OnUpdateUIOverlay(vks::UIOverlay* overlay)
 	{
 		if (overlay->header("Settings")) {
+
+
 			if (overlay->comboBox("Shader", &compute.pipelineIndex, shaderNames)) {
+							auto im = getCameraFrame();
+			std::string imageOutFile = getAssetPath() + "../data/tests/raw.png";
+
+			cv::imwrite(imageOutFile, cv::Mat(cv::Size(2048, 1088), CV_16SC1, im));
 				buildComputeCommandBuffer();
 			}
 		}

@@ -24,6 +24,10 @@
 //#include "ximea_grabber.h"
 //#include "webcam_grabber.h"
 #include "camera_grabber.h"
+#include "json.hpp"
+
+using json = nlohmann::json;
+
 
 #define VERTEX_BUFFER_BIND_ID 0
 #define ENABLE_VALIDATION true
@@ -83,7 +87,7 @@ private:
 	int32_t m_image_height;
 	int32_t m_image_depth = 1;
 	int32_t m_number_bands = 16;
-	int32_t m_number_bands_corrected = 10;
+	int32_t m_number_bands_corrected = 16;
 
 public:
 	struct {

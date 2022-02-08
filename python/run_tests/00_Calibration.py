@@ -5,6 +5,7 @@ import unittest
 
 import sys
 
+
 def main():
     print("Starting calibration test...")
 
@@ -17,7 +18,9 @@ def main():
     import calibration as cali
     print("imported calibration lib")
 
-    testRaw = cv2.imread(str(Path(__file__).absolute().parents[2] / 'data/tests/calibration_input_u16.png'), cv2.IMREAD_ANYDEPTH)
+    # testRaw = cv2.imread(str(Path(__file__).absolute().parents[2] / 'data/tests/calibration_input_u16.png'), cv2.IMREAD_ANYDEPTH)
+    testRaw = cv2.imread(str(Path(__file__).absolute().parents[2] / 'data/tests/raw.png'), cv2.IMREAD_ANYDEPTH)
+
     testWhite = cv2.imread(str(Path(__file__).absolute().parents[2] / 'data/tests/calibration_white_u16.png'), cv2.IMREAD_ANYDEPTH)
     testDark = cv2.imread(str(Path(__file__).absolute().parents[2] / 'data/tests/calibration_dark_u16.png'), cv2.IMREAD_ANYDEPTH)
 
@@ -55,7 +58,7 @@ def main():
 
     cv2.waitKey(0)
 
-    #np.save(str(Path(__file__).absolute().parents[2] / 'data/tests/demosaic_calibrated_u16.npy'), outputCalibrated)
+    np.save(str(Path(__file__).absolute().parents[2] / 'data/tests/demosaic_calibrated_u16.npy'), outputCalibrated)
 
     #outu16 = (outf32 * 65535.0).astype(np.uint16)
 

@@ -46,7 +46,7 @@ def main():
 
     cv2.waitKey(0)
 
-    # np.save(str(Path(__file__).absolute().parents[2] / 'data/tests/correction_calibrated_u16.npy'), outputDemosaiced)
+    np.save(str(Path(__file__).absolute().parents[2] / 'data/tests/correction_calibrated_u16.npy'), outputDemosaiced)
 
 if __name__ == "__main__":
     main()
